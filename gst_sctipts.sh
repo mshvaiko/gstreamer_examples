@@ -14,3 +14,12 @@ gst-launch-1.0 -e -v udpsrc port=5000 ! application/x-rtp, encoding-name=JPEG, p
 
 # stream wecam works with qgroundcontroll
 gst-launch-1.0 -v v4l2src device=/dev/video0 ! video/x-raw, width=640, height=480, framerate=30/1 ! videoconvert ! x264enc tune=zerolatency ! rtph264pay ! udpsink host=127.0.0.1 port=5000
+
+#multisink example (autovideosink and stream)
+gst-launch-1.0 -v v4l2src ! tee name=t t. ! queue ! videoscale ! video/x-raw,width=640,height=480 ! videoconvert ! autovideosink t. ! queue ! video/x-raw, width=640, height=480, framerate=30/1 ! videoconvert ! x264enc tune=zerolatency ! rtph264pay ! udpsink host=127.0.0.1 port=5000
+
+# get fps
+gst-launch-1.0 -e -v udpsrc port=5000 ! application/x-rtp ! rtph264depay ! avdec_h264 ! videoconvert ! fpsdisplaysink video-sink=autovideosink
+
+# get supported frame-format of the v4l2 device
+v4l2-ctl -d 0 --list-formats-ext
